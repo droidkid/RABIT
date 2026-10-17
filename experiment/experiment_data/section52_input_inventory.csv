@@ -1,0 +1,5 @@
+panel,N,C,bytes,sha256,payload_included,manifest
+a,100000000,100,400000000,2e2f14c97da9efdcd12bfda20b2b1e08769fead979c7715886bb399e48546bd7,False,experiment_config/input_manifests/a-C100.json
+a,100000000,1000,400000000,7eb9a0e6b63c43521f04d0babf3b91c5ef7d36b3e41992b60aa8478b3976cb39,False,experiment_config/input_manifests/a-C1000.json
+a,100000000,10000,400000000,48548095d6fd2a5195f5db45da6231f304d819956a91e0cb83b6b235e51f39a1,False,experiment_config/input_manifests/a-C10000.json
+b,1000000000,1000,4000000000,bb642ec9aa135cf6bbe95200e1426278f3c248ebd18ce6e736b5c2ffd990e323,False,experiment_config/input_manifests/b-C1000.json

@@ -1,0 +1,36 @@
+diff --git a/src/bitmaps/ub/table.cpp b/src/bitmaps/ub/table.cpp
+index 8d0ae9f..73242c8 100644
+--- a/src/bitmaps/ub/table.cpp
++++ b/src/bitmaps/ub/table.cpp
+@@ -1,3 +1,5 @@
++#include <cstdlib>
++#include "fastbit/fileManager.h"
+ #include "fastbit/bitvector.h"
+ 
+ #include <iostream>
+@@ -67,6 +69,13 @@ void Table::_read_btv(int begin, int end) {
+         if (config->INDEX_PATH != "")
+             bitmaps[i]->read(getBtvName(i).c_str());
+         bitmaps[i]->adjustSize(0, total_rows);
++        // SECTION51_RE_UNUSED_CACHE: diagnostic, disabled by default.
++        const char *re_cache_mode = std::getenv("RABIT_RE_CLEAN_UNUSED_CACHE");
++        if (config->encoding == RE && re_cache_mode != nullptr &&
++            std::string(re_cache_mode) == "1" && config->INDEX_PATH != "") {
++            // FastBit skips files still referenced by a live bitmap.
++            ibis::fileManager::instance().flushFile(getBtvName(i).c_str());
++        }
+         if (config->enable_fence_pointer) {
+             bitmaps[i]->index.clear();
+             bitmaps[i]->buildIndex();
+diff --git a/src/nicolas/nicolas.cpp b/src/nicolas/nicolas.cpp
+index 2e25d94..e667bfd 100644
+--- a/src/nicolas/nicolas.cpp
++++ b/src/nicolas/nicolas.cpp
+@@ -333,6 +333,7 @@ void evaluate(Table_config *config, string mode)
+     std::thread merge_thread;
+ 
+     if (config->approach == "rabit") {
++        __atomic_store_n(&run_merge_func, true, MM_CST);
+         merge_thread = std::thread(rabit_merge_dispatcher, table);
+     }
+ 

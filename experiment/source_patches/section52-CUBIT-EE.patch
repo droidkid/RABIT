@@ -1,0 +1,320 @@
+diff --git a/src/cubit/table.cpp b/src/cubit/table.cpp
+index a6ae87a..c4fbe0f 100644
+--- a/src/cubit/table.cpp
++++ b/src/cubit/table.cpp
+@@ -407,7 +407,7 @@ int Cubit::append(int tid, int val, uint64_t row_id)
+     trans->l_inc_rows ++;
+ 
+     if (autoCommit) {
+-        trans_commit(tid);
++        return trans_commit(tid);
+     }
+ 
+     return 0;
+@@ -440,6 +440,7 @@ int Cubit::update(int tid, uint64_t row_id, int to_val)
+         cout << "NOTE in update(): the value at row " << row_id <<
+             " has been deleted. I will return." << endl;
+         #endif
++        if (autoCommit) trans_commit(tid);
+         return -ENOENT;
+     }
+     else if (to_val == from_val) {
+@@ -447,6 +448,7 @@ int Cubit::update(int tid, uint64_t row_id, int to_val)
+         cout << "NOTE in update(): from_val == to_val (" << to_val <<
+             "). I will return." << endl;
+         #endif
++        if (autoCommit) trans_commit(tid);
+         return -ENOENT;
+     }
+ 
+@@ -481,7 +483,7 @@ int Cubit::update(int tid, uint64_t row_id, int to_val)
+     trans->rubs[row_id] = RUB{row_id, TYPE_UPDATE, pos_map};
+ 
+     if (autoCommit) {
+-        trans_commit(tid);
++        return trans_commit(tid);
+     }
+ 
+     return 0;
+@@ -510,6 +512,7 @@ int Cubit::remove(int tid, uint64_t row_id)
+         cout << "Remove: The value at row " << row_id << " has been deleted." <<
+             "I will return." << endl;
+         #endif
++        if (autoCommit) trans_commit(tid);
+         return -ENOENT;
+     }
+ 
+@@ -536,7 +539,7 @@ int Cubit::remove(int tid, uint64_t row_id)
+     trans->rubs[row_id] = RUB{row_id, TYPE_DELETE, pos_map};
+ 
+     if (autoCommit) {
+-        trans_commit(tid);
++        return trans_commit(tid);
+     }
+ 
+     return 0;
+@@ -644,7 +647,7 @@ int Cubit::evaluate_Curve(int tid, uint32_t val)
+             }
+         }
+         else{
+-            cnt = my_btv->do_cnt();
++            cnt = my_btv->cnt();
+         }
+     }
+ 
+@@ -727,7 +730,8 @@ int Cubit::evaluate_Curve(int tid, uint32_t val)
+     rcu_read_unlock();
+ 
+     if (autoCommit) {
+-        assert(trans_commit(tid) == -ENOENT);
++        const int commit_result = trans_commit(tid);
++        assert(commit_result == -ENOENT);
+     }
+ 
+     return cnt;
+@@ -802,7 +806,7 @@ int Cubit::evaluate_common(int tid, uint32_t val)
+                 }
+             }
+             else {
+-                cnt = old_btv->do_cnt();
++                cnt = old_btv->cnt();
+             }
+         }
+ 
+@@ -865,7 +869,7 @@ int Cubit::evaluate_common(int tid, uint32_t val)
+             for (auto const & [row_id_t, rub_t] : rubs) {
+                 assert(rub_t.pos.count(val));
+                 // new_btv->setBit(row_id_t, !new_btv->getBit(row_id_t, config), config);
+-                new_btv->setBit(row_id_t, 1, config);
++                new_btv->setBit(row_id_t, !new_btv->getBit(row_id_t, config), config);
+             }
+ 
+             // *new_btv ^= *bitmap_old->btv;
+@@ -877,7 +881,7 @@ int Cubit::evaluate_common(int tid, uint32_t val)
+                 new_btv->decode(dummy, config);
+                 cnt = 0;
+             } else {
+-                cnt = new_btv->do_cnt();
++                cnt = new_btv->cnt();
+             }
+         }
+ 
+@@ -912,7 +916,8 @@ int Cubit::evaluate_common(int tid, uint32_t val)
+     rcu_read_unlock();
+ 
+     if (autoCommit) {
+-        assert(trans_commit(tid) == -ENOENT);
++        const int commit_result = trans_commit(tid);
++        assert(commit_result == -ENOENT);
+     }
+ 
+     return cnt;
+@@ -1118,6 +1123,13 @@ int Cubit::get_value_rcu(uint64_t row_id, uint64_t l_timestamp, RUB &last_rub)
+         }
+     }
+ 
++    // A bitmap that has already merged this row may have no newer local RUB.
++    // Mutations need the latest row-wide mask, including changes pending on
++    // other bitmaps, rather than the mask observed by the value-finding helper.
++    uint64_t latest_rub_ts = 0;
++    get_rub_on_row(0, l_timestamp, READ_ONCE(trans_queue->head),
++                   row_id, last_rub, latest_rub_ts);
++
+     delete[] local_results;
+     delete[] getval_threads;
+     delete[] last_rub_t;
+@@ -1179,7 +1191,7 @@ void Cubit::printUncompMemorySeg() {
+ int Cubit::range(int tid, uint32_t start, uint32_t range) {
+     uint64_t cnt = 0UL;
+     ThreadInfo *th = &g_ths_info[tid];
+-    assert((start + range) < num_bitmaps);
++    assert(start <= uint32_t(num_bitmaps) && range <= uint32_t(num_bitmaps) - start);
+ 
+     rcu_read_lock();
+ 
+@@ -1281,7 +1293,7 @@ int Cubit::range(int tid, uint32_t start, uint32_t range) {
+ 
+                 for (const auto & [row_id_t, rub_t] : rubs) {
+                     assert(rub_t.pos.count(idx));
+-                    new_btv->setBit(row_id_t, 1, config);
++                    new_btv->setBit(row_id_t, !new_btv->getBit(row_id_t, config), config);
+                 }
+             }
+ 
+@@ -1304,7 +1316,7 @@ int Cubit::range(int tid, uint32_t start, uint32_t range) {
+         cnt = seg_btv_ret->do_cnt();
+     }
+     else {
+-        cnt = btv_ret->do_cnt();
++        cnt = btv_ret->cnt();
+     }
+ 
+     // std::cout << "Value of range query cnt: " << cnt << std::endl;
+@@ -1312,7 +1324,8 @@ int Cubit::range(int tid, uint32_t start, uint32_t range) {
+     rcu_read_unlock();
+ 
+     if (autoCommit) {
+-        assert(trans_commit(tid) == -ENOENT);
++        const int commit_result = trans_commit(tid);
++        assert(commit_result == -ENOENT);
+     }
+ 
+     if(config->segmented_btv) {
+diff --git a/src/cubit/table.h b/src/cubit/table.h
+index f125a2b..40af529 100644
+--- a/src/cubit/table.h
++++ b/src/cubit/table.h
+@@ -141,7 +141,8 @@ public:
+ 
+     Cubit(Table_config *);
+ 
+-    int append(int, int, uint64_t row_id = UINT64_MAX);
++    int append(int tid, int val) override { return append(tid, val, UINT64_MAX); }
++    int append(int, int, uint64_t row_id);
+     int remove(int, uint64_t);
+     int update(int, uint64_t, int);
+     int evaluate(int, uint32_t);
+diff --git a/src/cubit/table_lk.cpp b/src/cubit/table_lk.cpp
+index eef1fb5..e447608 100644
+--- a/src/cubit/table_lk.cpp
++++ b/src/cubit/table_lk.cpp
+@@ -133,7 +133,7 @@ int CubitLK::merge_bitmap(int tid, uint32_t val, TransDesc *trans,
+     }
+     assert(trans_merge->rubs.size() == rubs->size());
+ 
+-    bitmap_new->l_start_trans = trans_merge;
++    bitmap_new->l_start_trans = trans->l_end_trans;
+     bitmap_new->next = __atomic_load_n(&bitmaps[val], MM_RELAXED);
+ 
+     {   lock_guard<shared_mutex> guard(g_trans_lk);
+@@ -152,10 +152,10 @@ int CubitLK::merge_bitmap(int tid, uint32_t val, TransDesc *trans,
+         // auto ts_tmp = db_control ? __atomic_load_n(&db_timestamp, MM_CST) : __atomic_load_n(&g_timestamp, MM_CST);
+         // trans_merge->l_commit_ts = bitmap_new->l_commit_ts = ts_tmp + 1;
+         auto ts_tmp = db_control ? trans->l_start_ts : __atomic_load_n(&g_timestamp, MM_CST);
+-        trans_merge->l_commit_ts = bitmap_new->l_commit_ts = ts_tmp;
++        trans_merge->l_commit_ts = ts_tmp;
++        bitmap_new->l_commit_ts = trans->l_start_ts;
+         if(!db_control) {
+             trans_merge->l_commit_ts++;
+-            bitmap_new->l_commit_ts++;
+         }
+ 
+         __atomic_store_n(&bitmaps[val], bitmap_new, MM_RELEASE);
+diff --git a/src/fastbit/bitvector.cpp b/src/fastbit/bitvector.cpp
+index ea712ea..34b6c87 100644
+--- a/src/fastbit/bitvector.cpp
++++ b/src/fastbit/bitvector.cpp
+@@ -751,7 +751,7 @@ uint64_t ibis::bitvector::do_cnt() const throw() {
+         // when nset == 0, this function is invoked again to recompute
+         // nset, the following statements make the future computerations faster.
+         if (ns == 0 && m_vec.size() > 1) {
+-            const_cast<word_t &>(m_vec.front()) = (HEADER0 + (ns / MAXBITS));
++            const_cast<word_t &>(m_vec.front()) = (HEADER0 + (nb / MAXBITS));
+             const_cast<ibis::array_t<word_t> *>(&m_vec)->resize(1);
+         }
+     }
+@@ -1378,7 +1378,8 @@ int ibis::bitvector::operator==(const ibis::bitvector &rhs) const {
+ void ibis::bitvector::operator&=(const ibis::bitvector &rhs) {
+     // m_vec.nosharing(); // make sure the memory is not shared
+     if (size() > rhs.size()) { // make a copy of RHS and extend its size
+-        ibis::bitvector tmp(rhs);
++        ibis::bitvector tmp;
++        tmp.copy(rhs);
+         tmp.adjustSize(0, size());
+         operator&=(tmp);
+         return;
+@@ -1600,7 +1601,8 @@ void ibis::bitvector::operator|=(const ibis::bitvector &rhs) {
+ #endif
+     // m_vec.nosharing();
+     if (size() > rhs.size()) {
+-        ibis::bitvector tmp(rhs);
++        ibis::bitvector tmp;
++        tmp.copy(rhs);
+         tmp.adjustSize(0, size());
+         operator|=(tmp);
+         return;
+@@ -1734,7 +1736,8 @@ const {
+ void ibis::bitvector::operator^=(const ibis::bitvector &rhs) {
+     // m_vec.nosharing();
+     if (size() > rhs.size()) {
+-        ibis::bitvector tmp(rhs);
++        ibis::bitvector tmp;
++        tmp.copy(rhs);
+         tmp.adjustSize(0, size());
+         operator^=(tmp);
+         return;
+@@ -1857,7 +1860,8 @@ void ibis::bitvector::operator-=(const ibis::bitvector &rhs) {
+ #endif
+     // m_vec.nosharing();
+     if (size() > rhs.size()) {
+-        ibis::bitvector tmp(rhs);
++        ibis::bitvector tmp;
++        tmp.copy(rhs);
+         tmp.adjustSize(0, size());
+         operator-=(tmp);
+         return;
+diff --git a/src/nicolas/segBtv.cpp b/src/nicolas/segBtv.cpp
+index 51a88f9..fbc1946 100644
+--- a/src/nicolas/segBtv.cpp
++++ b/src/nicolas/segBtv.cpp
+@@ -11,7 +11,7 @@ using namespace std;
+ 
+ SegBtv::SegBtv(Table_config *config, ibis::bitvector * btv)
+ {
+-    n_rows = config->n_rows;
++    n_rows = btv->size();
+     uint64_t row_id = n_rows - 1;
+ 
+     // We want each segment to maintain a fixed number of words.
+@@ -22,7 +22,7 @@ SegBtv::SegBtv(Table_config *config, ibis::bitvector * btv)
+     rows_per_seg = (config->rows_per_seg / encoded_word_len) * encoded_word_len;
+     words_per_seg = rows_per_seg / encoded_word_len;
+     assert(rows_per_seg % encoded_word_len == 0);
+-    num_segs = (row_id / rows_per_seg) + (row_id % rows_per_seg != 0); // Get the ceiling
++    num_segs = (n_rows + rows_per_seg - 1) / rows_per_seg;
+ 
+     // Copy the decompressed bitvector btv to segments.
+     ibis::bitvector::run x;
+@@ -35,18 +35,18 @@ SegBtv::SegBtv(Table_config *config, ibis::bitvector * btv)
+         seg.end_row = (idx+1) * rows_per_seg -1;
+         assert(seg.btv);
+ 
+-        if (x.nWords == 0)
+-            x.decode();
+-
+         uint32_t nw = words_per_seg;
+         // The last segment has a portion of words.
+         if (idx == num_segs-1) {
+-            nw = (row_id / encoded_word_len) - (words_per_seg * idx);
++            nw = (n_rows / encoded_word_len) - (words_per_seg * idx);
+         }
+ 
+         // Copy nw words from btv to seg->btv.
+-        seg.btv->copy_runs(x, nw);
+-        assert(!nw);
++        if (nw > 0) {
++            if (x.nWords == 0) x.decode();
++            seg.btv->copy_runs(x, nw);
++            assert(!nw);
++        }
+ 
+         // WAH compression
+         seg.btv->compress();
+@@ -210,7 +210,7 @@ uint64_t SegBtv::do_cnt()
+     uint64_t cnt = 0UL;
+ 
+     for (const auto & [id_t, seg_t] : seg_table)
+-        cnt += seg_t.btv->do_cnt();
++        cnt += seg_t.btv->cnt();
+ 
+     return cnt;
+ }
+@@ -251,7 +251,7 @@ void SegBtv::_cnt_in_thread(uint64_t *cnt, int begin, int end) {
+     auto iter1 = seg_table.find(begin);
+     auto iter2 = seg_table.find(end);
+     for (; iter1 != iter2; iter1++)
+-        *cnt += iter1->second.btv->do_cnt();
++        *cnt += iter1->second.btv->cnt();
+ }
+ 
+ int SegBtv::Verify(Table_config *config, ibis::bitvector * const btv)

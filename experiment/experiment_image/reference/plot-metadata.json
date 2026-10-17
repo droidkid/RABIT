@@ -1,0 +1,306 @@
+{
+  "generated_at": "2026-10-15T14:24:27.306940+00:00",
+  "source_directory": "/home/wanglinghui/rabit-reproduction/results/figures/figure9/data",
+  "cohort": "historical native paths before resource adaptations",
+  "workers": 16,
+  "logical_cpus": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "trials_per_point": 3,
+  "attempts_per_worker": 1000,
+  "operation_count_basis": "local protocol; paper Figure 9 mixed-attempt count remains unconfirmed",
+  "require_complete": false,
+  "experimental_values_modified": false,
+  "missing_points_fabricated": false,
+  "source_hashes": {
+    "figure9a-8cpu-samples.json": "49cdc48e5af1b3b7c785e68096b21f28bd582713ecc95cadeb51dec391570f6d",
+    "figure9b-8cpu-samples.json": "5d0c5746430cd73e9787e8db50622e67f8816d47eeb71b3935ff2ad3462efdd5"
+  },
+  "panels": {
+    "a": {
+      "xscale": "log",
+      "yscale": "log",
+      "xlim": [
+        100.0,
+        100000.0
+      ],
+      "ylim": [
+        0.1,
+        500.0
+      ],
+      "xticks": [
+        100.0,
+        1000.0,
+        10000.0,
+        100000.0
+      ],
+      "yticks": [
+        0.1,
+        1.0,
+        10.0,
+        100.0
+      ],
+      "xtick_labels": [
+        "$10^2$",
+        "$10^3$",
+        "$10^4$",
+        "$10^5$"
+      ],
+      "ytick_labels": [
+        "$10^{-1}$",
+        "1",
+        "10",
+        "$10^2$"
+      ],
+      "missing_nodes": [
+        {
+          "curve": "GE-C/20",
+          "x": 100000
+        },
+        {
+          "curve": "GE-C/10",
+          "x": 100000
+        },
+        {
+          "curve": "EE",
+          "x": 10000
+        },
+        {
+          "curve": "EE",
+          "x": 100000
+        },
+        {
+          "curve": "RE",
+          "x": 10000
+        },
+        {
+          "curve": "RE",
+          "x": 100000
+        }
+      ],
+      "points": [
+        {
+          "curve": "EE",
+          "x": 100,
+          "mean_op_s": 63.89801666666667,
+          "trials": 3
+        },
+        {
+          "curve": "EE",
+          "x": 1000,
+          "mean_op_s": 42.948706666666666,
+          "trials": 3
+        },
+        {
+          "curve": "GE-C/10",
+          "x": 100,
+          "mean_op_s": 215.7154,
+          "trials": 3
+        },
+        {
+          "curve": "GE-C/10",
+          "x": 1000,
+          "mean_op_s": 162.86801333333332,
+          "trials": 3
+        },
+        {
+          "curve": "GE-C/10",
+          "x": 10000,
+          "mean_op_s": 44.2043,
+          "trials": 3
+        },
+        {
+          "curve": "GE-C/20",
+          "x": 100,
+          "mean_op_s": 399.1406333333333,
+          "trials": 3
+        },
+        {
+          "curve": "GE-C/20",
+          "x": 1000,
+          "mean_op_s": 394.8888666666667,
+          "trials": 3
+        },
+        {
+          "curve": "GE-C/20",
+          "x": 10000,
+          "mean_op_s": 369.9217,
+          "trials": 3
+        },
+        {
+          "curve": "RE",
+          "x": 100,
+          "mean_op_s": 90.14649999999999,
+          "trials": 3
+        },
+        {
+          "curve": "RE",
+          "x": 1000,
+          "mean_op_s": 10.404150333333334,
+          "trials": 3
+        }
+      ]
+    },
+    "b": {
+      "xscale": "linear",
+      "yscale": "log",
+      "xlim": [
+        5.0,
+        45.0
+      ],
+      "ylim": [
+        0.1,
+        100.0
+      ],
+      "xticks": [
+        5.0,
+        15.0,
+        25.0,
+        35.0,
+        45.0
+      ],
+      "yticks": [
+        0.1,
+        1.0,
+        10.0,
+        100.0
+      ],
+      "xtick_labels": [
+        "5",
+        "15",
+        "25",
+        "35",
+        "45"
+      ],
+      "ytick_labels": [
+        "$10^{-1}$",
+        "1",
+        "10",
+        "$10^2$"
+      ],
+      "missing_nodes": [
+        {
+          "curve": "EE",
+          "x": 5
+        },
+        {
+          "curve": "EE",
+          "x": 15
+        },
+        {
+          "curve": "EE",
+          "x": 25
+        },
+        {
+          "curve": "EE",
+          "x": 35
+        },
+        {
+          "curve": "EE",
+          "x": 45
+        },
+        {
+          "curve": "RE",
+          "x": 5
+        },
+        {
+          "curve": "RE",
+          "x": 15
+        },
+        {
+          "curve": "RE",
+          "x": 25
+        },
+        {
+          "curve": "RE",
+          "x": 35
+        },
+        {
+          "curve": "RE",
+          "x": 45
+        }
+      ],
+      "points": [
+        {
+          "curve": "GE-C/10",
+          "x": 5.0,
+          "mean_op_s": 10.372762333333334,
+          "trials": 3
+        },
+        {
+          "curve": "GE-C/10",
+          "x": 15.0,
+          "mean_op_s": 9.692187,
+          "trials": 3
+        },
+        {
+          "curve": "GE-C/10",
+          "x": 25.0,
+          "mean_op_s": 9.356511,
+          "trials": 3
+        },
+        {
+          "curve": "GE-C/10",
+          "x": 35.0,
+          "mean_op_s": 8.996080333333333,
+          "trials": 3
+        },
+        {
+          "curve": "GE-C/10",
+          "x": 45.0,
+          "mean_op_s": 8.719120333333333,
+          "trials": 3
+        },
+        {
+          "curve": "GE-C/20",
+          "x": 5.0,
+          "mean_op_s": 60.31280666666667,
+          "trials": 3
+        },
+        {
+          "curve": "GE-C/20",
+          "x": 15.0,
+          "mean_op_s": 35.532473333333336,
+          "trials": 3
+        },
+        {
+          "curve": "GE-C/20",
+          "x": 25.0,
+          "mean_op_s": 24.829643333333333,
+          "trials": 3
+        },
+        {
+          "curve": "GE-C/20",
+          "x": 35.0,
+          "mean_op_s": 19.012113333333332,
+          "trials": 3
+        },
+        {
+          "curve": "GE-C/20",
+          "x": 45.0,
+          "mean_op_s": 15.725221,
+          "trials": 3
+        }
+      ]
+    }
+  },
+  "plot_script_sha256": "dc6528612b5fef326767fd6c4ddd49d20192217d1e0072ca849ce4fa523fb4a1",
+  "artifact_sha256": {
+    "figure9-native-paper-axes.png": "6d82297e84bc6aa8395772e55f4aa65956e38bffdbab9dedf3a259052b03a73f",
+    "figure9a-native-paper-axes.svg": "7c3159af444030af5a561065f1258009c082cd590f98fe883b3f4d3f1d474005",
+    "figure9b-native-paper-axes.png": "f51807c4ede6af96d470473b008d42ab10eeace94b84d87add740381913f37ad",
+    "figure9b-native-paper-axes.svg": "0bc7dccd3c33d36757cf67b5541ce009b755ad9853920dd7db059d6d7d3b6acd",
+    "figure9-native-paper-axes.svg": "fce106eceaa6407e3813567094d30bbe95c3a89b9bd21091294e10bb6cdd5cb3",
+    "figure9-native-paper-axes.pdf": "bde5aadda2602a2d882e0c8a3a44c62d596bf3c985dbc619d4b852c28ff59276",
+    "figure9b-native-paper-axes.pdf": "f3558b058c4105ceaa84c0709e63e422bc991b77ba6ab25d2606a5ddd24c5967",
+    "figure9a-native-paper-axes.pdf": "16f5f54daed27644f999c8cb1eae0490138681db2ae7cced974366d53556a737",
+    "figure9a-native-paper-axes.png": "c31e8a629982d0eb3459b962090bd6517002016bf190b836d7190ce477987220"
+  }
+}

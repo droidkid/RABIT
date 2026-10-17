@@ -1,0 +1,335 @@
+diff --git a/src/bitmaps/rabit/segBtv.cpp b/src/bitmaps/rabit/segBtv.cpp
+index 3dc859c..49c3c9d 100644
+--- a/src/bitmaps/rabit/segBtv.cpp
++++ b/src/bitmaps/rabit/segBtv.cpp
+@@ -12,7 +12,7 @@ using namespace std;
+ 
+ SegBtv::SegBtv(Table_config *config, ibis::bitvector * btv)
+ {
+-    n_rows = config->n_rows;
++    n_rows = btv->size();
+     uint64_t row_id = n_rows - 1;
+ 
+     // We want each segment to maintain a fixed number of words.
+@@ -23,7 +23,7 @@ SegBtv::SegBtv(Table_config *config, ibis::bitvector * btv)
+     rows_per_seg = (config->rows_per_seg / encoded_word_len) * encoded_word_len;
+     words_per_seg = rows_per_seg / encoded_word_len;
+     assert(rows_per_seg % encoded_word_len == 0);
+-    num_segs = (row_id / rows_per_seg) + (row_id % rows_per_seg != 0); // Get the ceiling
++    num_segs = (n_rows + rows_per_seg - 1) / rows_per_seg;
+ 
+     // Copy the decompressed bitvector btv to segments.
+     ibis::bitvector::run x;
+@@ -36,18 +36,18 @@ SegBtv::SegBtv(Table_config *config, ibis::bitvector * btv)
+         seg->end_row = (idx+1) * rows_per_seg -1;
+         assert(seg->btv);
+ 
+-        if (x.nWords == 0)
+-            x.decode();
+-
+         uint32_t nw = words_per_seg;
+         // The last segment has a portion of words.
+         if (idx == num_segs-1) {
+-            nw = (row_id / encoded_word_len) - (words_per_seg * idx);
++            nw = (n_rows / encoded_word_len) - (words_per_seg * idx);
+         }
+ 
+         // Copy nw words from btv to seg->btv.
+-        seg->btv->copy_runs(x, nw);
+-        assert(!nw);
++        if (nw > 0) {
++            if (x.nWords == 0) x.decode();
++            seg->btv->copy_runs(x, nw);
++            assert(!nw);
++        }
+ 
+         // WAH compression
+         seg->btv->compress(0.0005);
+diff --git a/src/bitmaps/rabit/table.cpp b/src/bitmaps/rabit/table.cpp
+index ff14326..52fe134 100644
+--- a/src/bitmaps/rabit/table.cpp
++++ b/src/bitmaps/rabit/table.cpp
+@@ -51,7 +51,10 @@ Rabit::Rabit(Table_config *config) : BaseTable(config),
+     Btvs = new Bitvector*[num_btvs];
+     Btvs_GE = new Bitvector*[num_btvs_GE];
+ 
+-    total_rows = config->n_rows + RABIT_PAD_BITS;
++    // Every attempted workload operation could be an insert. Preallocate zero
++    // capacity to avoid mutating the segment map while queries/maintenance run.
++    total_rows = config->n_rows + RABIT_PAD_BITS +
++        uint64_t(config->n_workers) * (uint64_t(config->n_queries) + config->n_udis);
+ 
+     int n_threads = (config->nThreads_for_getval > num_btvs) ? 
+                         num_btvs : config->nThreads_for_getval;
+@@ -173,6 +176,7 @@ void Rabit::_load_btv(int begin, int end, TransDesc* trans_dummy, Table_config *
+         // for rabit without db, we cen delete unsegmented bitvectors
+         if(!db_control) {
+             delete btv_t;
++            Btvs[i]->btv = nullptr;
+         }
+     }
+ }
+@@ -205,6 +209,7 @@ void Rabit::_load_btv_GE(int begin, int end, TransDesc* trans_dummy, Table_confi
+         // for rabit without db, we cen delete unsegmented bitvectors
+         if(!db_control) {
+             delete btv_t;
++            Btvs_GE[i]->btv = nullptr;
+         }
+ 
+         Btvs_GE[i]->next = NULL;
+diff --git a/src/bitmaps/rabit/table.h b/src/bitmaps/rabit/table.h
+index 6489eb0..6b19338 100644
+--- a/src/bitmaps/rabit/table.h
++++ b/src/bitmaps/rabit/table.h
+@@ -138,7 +138,12 @@ public:
+     typedef std::unordered_map<uint32_t, seg_rids> pos_segs;
+ 
+     Rabit(Table_config *);
+-    ~Rabit() { int e=config->g_cardinality-(config->encoding != EE); for(int i = 0; i < e; i++) {delete Btvs[i];} }
++    ~Rabit() {
++        for (int i = 0; i < num_btvs; ++i) delete Btvs[i];
++        for (int i = 0; i < num_btvs_GE; ++i) delete Btvs_GE[i];
++        delete[] Btvs;
++        delete[] Btvs_GE;
++    }
+ 
+     int append(int, int, uint64_t row_id);
+     int append(int, int);
+diff --git a/src/bitmaps/ub/table.cpp b/src/bitmaps/ub/table.cpp
+index 8d0ae9f..71e1a34 100644
+--- a/src/bitmaps/ub/table.cpp
++++ b/src/bitmaps/ub/table.cpp
+@@ -25,15 +25,16 @@ Table::Table(Table_config *config) : BaseTable(config), number_of_rows(config->n
+     if (config->encoding == EE)
+         num_bitmaps = config->g_cardinality;
+     else if (config->encoding == RE)
+-        num_bitmaps = config->g_cardinality - 1;
++        // The terminal cumulative bitmap distinguishes the highest value from deleted rows.
++        num_bitmaps = config->g_cardinality;
+     else {
+         cout << "Bitmap UpBit only spports the EE and RE encoding schemes" << endl;
+         assert(0);
+     }
+ 
+-    bitmaps.reserve(num_bitmaps);
+-    update_bitmaps.reserve(num_bitmaps);
+-    lk_bitmaps.reserve(num_bitmaps);
++    bitmaps.resize(num_bitmaps);
++    update_bitmaps.resize(num_bitmaps);
++    lk_bitmaps.resize(num_bitmaps);
+     total_rows = config->n_rows + UB_PAD_BITS;
+ 
+     config->nThreads_for_getval = 16;   // FIXME: In our evaluation, UpBit use the best argument 16.
+@@ -64,7 +65,9 @@ Table::Table(Table_config *config) : BaseTable(config), number_of_rows(config->n
+ void Table::_read_btv(int begin, int end) {
+     for (int i = begin; i < end; i++) {
+         bitmaps[i] = new ibis::bitvector();
+-        if (config->INDEX_PATH != "")
++        if (config->encoding == RE && i == num_bitmaps - 1)
++            bitmaps[i]->adjustSize(config->n_rows, total_rows);
++        else if (config->INDEX_PATH != "")
+             bitmaps[i]->read(getBtvName(i).c_str());
+         bitmaps[i]->adjustSize(0, total_rows);
+         if (config->enable_fence_pointer) {
+@@ -79,6 +82,8 @@ void Table::_read_btv(int begin, int end) {
+ 
+ int Table::append(int tid, int val) 
+ {
++    std::unique_lock<std::mutex> re_guard(lk_re_mutations, std::defer_lock);
++    if (config->encoding == RE) re_guard.lock();
+     lock_guard<shared_mutex> guard_number_of_rows(lk_append);
+ 
+     if (config->encoding == EE) {
+@@ -119,6 +124,8 @@ int Table::__get_point_val(unsigned int column, unsigned int row)
+ 
+ int Table::update(int tid, uint64_t rowid, int to_val) 
+ {
++    std::unique_lock<std::mutex> re_guard(lk_re_mutations, std::defer_lock);
++    if (config->encoding == RE) re_guard.lock();
+     int from_val = get_value(rowid);
+ 
+     if (from_val == -1 || to_val == from_val)
+@@ -156,7 +163,7 @@ int Table::update(int tid, uint64_t rowid, int to_val)
+         }
+ 
+         // for (int idx = min; idx <= max; idx++) causes conflicts among concurrent updates.
+-        for (int idx = min; idx < max; idx++) {
++        for (int idx = min; idx <= max; idx++) {
+             lk_bitmaps[idx]->lock();
+         }
+ 
+@@ -166,7 +173,7 @@ int Table::update(int tid, uint64_t rowid, int to_val)
+                 cout << "WARNING: [Update] Bitvector has been changed "
+                     << "in between I checking it and grabing the locks." 
+                     << " So I'm leaving the bitvector untouched." << endl;
+-                for (int idx = 0; idx < num_bitmaps; idx++) {
++                for (int idx = min; idx <= max; idx++) {
+                     lk_bitmaps[idx]->unlock();
+                 }
+                 return -EPERM;
+@@ -177,7 +184,7 @@ int Table::update(int tid, uint64_t rowid, int to_val)
+             update_bitmaps[idx]->setBit(rowid, !update_bitmaps[idx]->getBit(rowid, config), config);
+         }
+ 
+-        for (int idx = min; idx < max; idx++) {
++        for (int idx = min; idx <= max; idx++) {
+             lk_bitmaps[idx]->unlock();
+         }
+     }
+@@ -190,6 +197,8 @@ int Table::update(int tid, uint64_t rowid, int to_val)
+ 
+ int Table::remove(int tid, uint64_t rowid) 
+ {
++    std::unique_lock<std::mutex> re_guard(lk_re_mutations, std::defer_lock);
++    if (config->encoding == RE) re_guard.lock();
+     int val = get_value(rowid);
+     if (val == -1)
+         return -ENOENT;
+@@ -226,7 +235,7 @@ int Table::remove(int tid, uint64_t rowid)
+         }
+ 
+         for (int idx = val; idx < num_bitmaps; idx++) {
+-            update_bitmaps[idx]->setBit(rowid, 0, config);
++            update_bitmaps[idx]->setBit(rowid, !update_bitmaps[idx]->getBit(rowid, config), config);
+         }
+ 
+         for (int idx = val; idx < num_bitmaps; idx++) {
+diff --git a/src/bitmaps/ub/table.h b/src/bitmaps/ub/table.h
+index 2d75a0e..ba8006b 100644
+--- a/src/bitmaps/ub/table.h
++++ b/src/bitmaps/ub/table.h
+@@ -39,6 +39,8 @@ namespace ub {
+         // Mutex lock to protect the shared variable number_of_rows.
+         // Append operations must first grab this lock.
+         std::shared_mutex lk_append;
++        // Serialize RE mutations so discovering and changing a row value is atomic.
++        std::mutex lk_re_mutations;
+         uint64_t number_of_rows;
+ 
+         uint64_t total_rows;
+diff --git a/src/fastbit/bitvector.cpp b/src/fastbit/bitvector.cpp
+index dd3bfaa..c150d89 100644
+--- a/src/fastbit/bitvector.cpp
++++ b/src/fastbit/bitvector.cpp
+@@ -701,7 +701,7 @@ uint64_t ibis::bitvector::do_cnt() const throw() {
+         // when nset == 0, this function is invoked again to recompute
+         // nset, the following statements make the future computerations faster.
+         if (ns == 0 && m_vec.size() > 1) {
+-            const_cast<word_t &>(m_vec.front()) = (HEADER0 + (ns / MAXBITS));
++            const_cast<word_t &>(m_vec.front()) = (HEADER0 + (nb / MAXBITS));
+             const_cast<ibis::array_t<word_t> *>(&m_vec)->resize(1);
+         }
+     }
+@@ -1330,7 +1330,8 @@ int ibis::bitvector::operator==(const ibis::bitvector &rhs) const {
+ void ibis::bitvector::operator&=(const ibis::bitvector &rhs) {
+     // m_vec.nosharing(); // make sure the memory is not shared
+     if (size() > rhs.size()) { // make a copy of RHS and extend its size
+-        ibis::bitvector tmp(rhs);
++        ibis::bitvector tmp;
++        tmp.copy(rhs);
+         tmp.adjustSize(0, size());
+         operator&=(tmp);
+         return;
+@@ -1552,7 +1553,8 @@ void ibis::bitvector::operator|=(const ibis::bitvector &rhs) {
+ #endif
+     // m_vec.nosharing();
+     if (size() > rhs.size()) {
+-        ibis::bitvector tmp(rhs);
++        ibis::bitvector tmp;
++        tmp.copy(rhs);
+         tmp.adjustSize(0, size());
+         operator|=(tmp);
+         return;
+@@ -1686,7 +1688,8 @@ const {
+ void ibis::bitvector::operator^=(const ibis::bitvector &rhs) {
+     // m_vec.nosharing();
+     if (size() > rhs.size()) {
+-        ibis::bitvector tmp(rhs);
++        ibis::bitvector tmp;
++        tmp.copy(rhs);
+         tmp.adjustSize(0, size());
+         operator^=(tmp);
+         return;
+@@ -1810,7 +1813,8 @@ void ibis::bitvector::operator-=(const ibis::bitvector &rhs) {
+ #endif
+     // m_vec.nosharing();
+     if (size() > rhs.size()) {
+-        ibis::bitvector tmp(rhs);
++        ibis::bitvector tmp;
++        tmp.copy(rhs);
+         tmp.adjustSize(0, size());
+         operator-=(tmp);
+         return;
+diff --git a/src/nicolas/gen_bitmap.cpp b/src/nicolas/gen_bitmap.cpp
+index 8536e5e..8c8e23e 100644
+--- a/src/nicolas/gen_bitmap.cpp
++++ b/src/nicolas/gen_bitmap.cpp
+@@ -99,8 +99,12 @@ void genEE( std::string data_path, std::string write_dir, uint64_t rows) {
+ 
+ void genRE( std::string data_path, std::string write_dir, int cardinality, uint64_t rows) {
+ 
+-	char name[] = "/tmp/tmpbitmapXXXXXX";
+-	auto tmp_path = mkdtemp(name);
++	const char *tmp_root = std::getenv("TMPDIR");
++	std::string tmp_name = std::string(tmp_root ? tmp_root : "/tmp") + "/rabit-ee-XXXXXX";
++	std::vector<char> name(tmp_name.begin(), tmp_name.end());
++	name.push_back('\0');
++	auto tmp_path = mkdtemp(name.data());
++	if (!tmp_path) throw std::runtime_error("Unable to create temporary EE directory");
+ 	std::cout << tmp_path << std::endl;
+ 	string ee_path(tmp_path, tmp_path + strlen(tmp_path));
+ 	ee_path = CheckDir(ee_path);
+@@ -120,14 +124,19 @@ void genRE( std::string data_path, std::string write_dir, int cardinality, uint6
+ 		curr_btv->write(ss.str().c_str());
+ 	}
+ 	delete curr_btv;
+-	unlink(tmp_path);
++	// Preserve generated temporary data for audit; cleanup requires explicit authorization.
++	std::cout << "Retained temporary EE directory: " << tmp_path << std::endl;
+ 
+ }
+ 
+ void genGE( std::string data_path, std::string write_dir, int group_length, int cardinality, uint64_t rows) {
+ 
+-	char name[] = "/tmp/tmpbitmapXXXXXX";
+-	auto tmp_path = mkdtemp(name);
++	const char *tmp_root = std::getenv("TMPDIR");
++	std::string tmp_name = std::string(tmp_root ? tmp_root : "/tmp") + "/rabit-ee-XXXXXX";
++	std::vector<char> name(tmp_name.begin(), tmp_name.end());
++	name.push_back('\0');
++	auto tmp_path = mkdtemp(name.data());
++	if (!tmp_path) throw std::runtime_error("Unable to create temporary EE directory");
+ 	string ee_path(tmp_path, tmp_path + strlen(tmp_path));
+ 	ee_path = CheckDir(ee_path);
+ 	genEE(data_path, ee_path, rows);
+@@ -150,7 +159,8 @@ void genGE( std::string data_path, std::string write_dir, int group_length, int
+ 		curr_btv.compress();
+ 		curr_btv.write(w.str().c_str());
+ 	}
+-	unlink(tmp_path);
++	// Preserve generated temporary data for audit; cleanup requires explicit authorization.
++	std::cout << "Retained temporary EE directory: " << tmp_path << std::endl;
+ 
+ }
+ 
+diff --git a/src/nicolas/nicolas.cpp b/src/nicolas/nicolas.cpp
+index 2e25d94..a8f7d7d 100644
+--- a/src/nicolas/nicolas.cpp
++++ b/src/nicolas/nicolas.cpp
+@@ -129,7 +129,7 @@ void worker_func(int tid, const string& mode, Table_config *config)
+         btv_range = config->g_cardinality - 1;
+     }
+     else if (config->encoding == RE) {
+-        btv_range = config->g_cardinality - 2;
++        btv_range = config->g_cardinality - 1;
+     }
+     else {
+         cerr << "ERROR: Invalid encoding scheme. Supported schemes are EE, RE, and GE." << endl;
+@@ -333,6 +333,7 @@ void evaluate(Table_config *config, string mode)
+     std::thread merge_thread;
+ 
+     if (config->approach == "rabit") {
++        __atomic_store_n(&run_merge_func, true, MM_CST);
+         merge_thread = std::thread(rabit_merge_dispatcher, table);
+     }
+ 

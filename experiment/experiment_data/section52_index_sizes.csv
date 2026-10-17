@@ -1,0 +1,15 @@
+panel,N,C,encoding,G,bitmap_files,own_bitmap_bytes,shared_EE_bytes,total_native_index_bytes,total_native_index_GiB,basis,manifest
+a,100000000,100,EE,0,100,598355272,0,598355272,0.5572617724537849,measured serialized bitmap sizes in preserved input manifest,experiment_config/input_manifests/a-C100.json
+a,100000000,100,GE,10,10,128842520,598355272,727197792,0.6772557199001312,measured serialized bitmap sizes in preserved input manifest,experiment_config/input_manifests/a-C100.json
+a,100000000,100,GE,5,20,247338300,598355272,845693572,0.7876135148108006,measured serialized bitmap sizes in preserved input manifest,experiment_config/input_manifests/a-C100.json
+a,100000000,100,RE,0,99,1248022092,0,1248022092,1.1623111478984356,measured serialized bitmap sizes in preserved input manifest,experiment_config/input_manifests/a-C100.json
+a,100000000,1000,EE,0,1000,776078848,0,776078848,0.7227797508239746,measured serialized bitmap sizes in preserved input manifest,experiment_config/input_manifests/a-C1000.json
+a,100000000,1000,GE,100,10,128845092,776078848,904923940,0.8427760936319828,measured serialized bitmap sizes in preserved input manifest,experiment_config/input_manifests/a-C1000.json
+a,100000000,1000,GE,50,20,247343584,776078848,1023422432,0.9531364142894745,measured serialized bitmap sizes in preserved input manifest,experiment_config/input_manifests/a-C1000.json
+a,100000000,1000,RE,0,999,12493714128,0,12493714128,11.635678008198738,measured serialized bitmap sizes in preserved input manifest,experiment_config/input_manifests/a-C1000.json
+a,100000000,10000,EE,0,10000,797689400,0,797689400,0.7429061457514763,measured serialized bitmap sizes in preserved input manifest,experiment_config/input_manifests/a-C10000.json
+a,100000000,10000,GE,1000,10,128844004,797689400,926533404,0.8629014752805233,measured serialized bitmap sizes in preserved input manifest,experiment_config/input_manifests/a-C10000.json
+a,100000000,10000,GE,500,20,247328388,797689400,1045017788,0.9732486568391323,measured serialized bitmap sizes in preserved input manifest,experiment_config/input_manifests/a-C10000.json
+b,1000000000,1000,EE,0,1000,7760775576,0,7760775576,7.227785490453243,measured serialized bitmap sizes in preserved input manifest,experiment_config/input_manifests/b-C1000.json
+b,1000000000,1000,GE,100,10,1288445276,7760775576,9049220852,8.427743662148714,measured serialized bitmap sizes in preserved input manifest,experiment_config/input_manifests/b-C1000.json
+b,1000000000,1000,GE,50,20,2473320552,7760775576,10234096128,9.53124475479126,measured serialized bitmap sizes in preserved input manifest,experiment_config/input_manifests/b-C1000.json

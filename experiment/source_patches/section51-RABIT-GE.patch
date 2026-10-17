@@ -1,0 +1,12 @@
+diff --git a/src/nicolas/nicolas.cpp b/src/nicolas/nicolas.cpp
+index 2e25d94..e667bfd 100644
+--- a/src/nicolas/nicolas.cpp
++++ b/src/nicolas/nicolas.cpp
+@@ -333,6 +333,7 @@ void evaluate(Table_config *config, string mode)
+     std::thread merge_thread;
+ 
+     if (config->approach == "rabit") {
++        __atomic_store_n(&run_merge_func, true, MM_CST);
+         merge_thread = std::thread(rabit_merge_dispatcher, table);
+     }
+ 

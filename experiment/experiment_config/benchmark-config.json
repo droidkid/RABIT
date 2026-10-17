@@ -1,0 +1,430 @@
+{
+  "section51": {
+    "rows": 100000000,
+    "cardinality": 1000,
+    "attempts_per_worker": 200,
+    "algorithms": [
+      "GE50",
+      "GE100",
+      "EE",
+      "RE"
+    ],
+    "udi_percentages": [
+      0,
+      10,
+      20,
+      30,
+      40,
+      50
+    ],
+    "fixed_query_length": 150,
+    "query_lengths": [
+      50,
+      150,
+      250,
+      350,
+      450
+    ],
+    "fixed_udi_percentage": 20
+  },
+  "section52": {
+    "nodes": [
+      {
+        "panel": "a",
+        "x": 100,
+        "method": "GE-C/20",
+        "N": 100000000,
+        "C": 100,
+        "G": 5,
+        "range_length": 15,
+        "encoding": "GE",
+        "enabled_by_default": true
+      },
+      {
+        "panel": "a",
+        "x": 100,
+        "method": "GE-C/10",
+        "N": 100000000,
+        "C": 100,
+        "G": 10,
+        "range_length": 15,
+        "encoding": "GE",
+        "enabled_by_default": true
+      },
+      {
+        "panel": "a",
+        "x": 100,
+        "method": "EE",
+        "N": 100000000,
+        "C": 100,
+        "G": 0,
+        "range_length": 15,
+        "encoding": "EE",
+        "enabled_by_default": true
+      },
+      {
+        "panel": "a",
+        "x": 100,
+        "method": "RE",
+        "N": 100000000,
+        "C": 100,
+        "G": 0,
+        "range_length": 15,
+        "encoding": "RE",
+        "enabled_by_default": true
+      },
+      {
+        "panel": "a",
+        "x": 1000,
+        "method": "GE-C/20",
+        "N": 100000000,
+        "C": 1000,
+        "G": 50,
+        "range_length": 150,
+        "encoding": "GE",
+        "enabled_by_default": true
+      },
+      {
+        "panel": "a",
+        "x": 1000,
+        "method": "GE-C/10",
+        "N": 100000000,
+        "C": 1000,
+        "G": 100,
+        "range_length": 150,
+        "encoding": "GE",
+        "enabled_by_default": true
+      },
+      {
+        "panel": "a",
+        "x": 1000,
+        "method": "EE",
+        "N": 100000000,
+        "C": 1000,
+        "G": 0,
+        "range_length": 150,
+        "encoding": "EE",
+        "enabled_by_default": true
+      },
+      {
+        "panel": "a",
+        "x": 1000,
+        "method": "RE",
+        "N": 100000000,
+        "C": 1000,
+        "G": 0,
+        "range_length": 150,
+        "encoding": "RE",
+        "enabled_by_default": true
+      },
+      {
+        "panel": "a",
+        "x": 10000,
+        "method": "GE-C/20",
+        "N": 100000000,
+        "C": 10000,
+        "G": 500,
+        "range_length": 1500,
+        "encoding": "GE",
+        "enabled_by_default": true
+      },
+      {
+        "panel": "a",
+        "x": 10000,
+        "method": "GE-C/10",
+        "N": 100000000,
+        "C": 10000,
+        "G": 1000,
+        "range_length": 1500,
+        "encoding": "GE",
+        "enabled_by_default": true
+      },
+      {
+        "panel": "a",
+        "x": 10000,
+        "method": "EE",
+        "N": 100000000,
+        "C": 10000,
+        "G": 0,
+        "range_length": 1500,
+        "encoding": "EE",
+        "enabled_by_default": false
+      },
+      {
+        "panel": "a",
+        "x": 10000,
+        "method": "RE",
+        "N": 100000000,
+        "C": 10000,
+        "G": 0,
+        "range_length": 1500,
+        "encoding": "RE",
+        "enabled_by_default": false
+      },
+      {
+        "panel": "a",
+        "x": 100000,
+        "method": "GE-C/20",
+        "N": 100000000,
+        "C": 100000,
+        "G": 5000,
+        "range_length": 15000,
+        "encoding": "GE",
+        "enabled_by_default": false
+      },
+      {
+        "panel": "a",
+        "x": 100000,
+        "method": "GE-C/10",
+        "N": 100000000,
+        "C": 100000,
+        "G": 10000,
+        "range_length": 15000,
+        "encoding": "GE",
+        "enabled_by_default": false
+      },
+      {
+        "panel": "a",
+        "x": 100000,
+        "method": "EE",
+        "N": 100000000,
+        "C": 100000,
+        "G": 0,
+        "range_length": 15000,
+        "encoding": "EE",
+        "enabled_by_default": false
+      },
+      {
+        "panel": "a",
+        "x": 100000,
+        "method": "RE",
+        "N": 100000000,
+        "C": 100000,
+        "G": 0,
+        "range_length": 15000,
+        "encoding": "RE",
+        "enabled_by_default": false
+      },
+      {
+        "panel": "b",
+        "x": 5,
+        "method": "GE-C/20",
+        "N": 1000000000,
+        "C": 1000,
+        "G": 50,
+        "range_length": 50,
+        "encoding": "GE",
+        "enabled_by_default": true
+      },
+      {
+        "panel": "b",
+        "x": 5,
+        "method": "GE-C/10",
+        "N": 1000000000,
+        "C": 1000,
+        "G": 100,
+        "range_length": 50,
+        "encoding": "GE",
+        "enabled_by_default": true
+      },
+      {
+        "panel": "b",
+        "x": 5,
+        "method": "EE",
+        "N": 1000000000,
+        "C": 1000,
+        "G": 0,
+        "range_length": 50,
+        "encoding": "EE",
+        "enabled_by_default": false
+      },
+      {
+        "panel": "b",
+        "x": 5,
+        "method": "RE",
+        "N": 1000000000,
+        "C": 1000,
+        "G": 0,
+        "range_length": 50,
+        "encoding": "RE",
+        "enabled_by_default": false
+      },
+      {
+        "panel": "b",
+        "x": 15,
+        "method": "GE-C/20",
+        "N": 1000000000,
+        "C": 1000,
+        "G": 50,
+        "range_length": 150,
+        "encoding": "GE",
+        "enabled_by_default": true
+      },
+      {
+        "panel": "b",
+        "x": 15,
+        "method": "GE-C/10",
+        "N": 1000000000,
+        "C": 1000,
+        "G": 100,
+        "range_length": 150,
+        "encoding": "GE",
+        "enabled_by_default": true
+      },
+      {
+        "panel": "b",
+        "x": 15,
+        "method": "EE",
+        "N": 1000000000,
+        "C": 1000,
+        "G": 0,
+        "range_length": 150,
+        "encoding": "EE",
+        "enabled_by_default": false
+      },
+      {
+        "panel": "b",
+        "x": 15,
+        "method": "RE",
+        "N": 1000000000,
+        "C": 1000,
+        "G": 0,
+        "range_length": 150,
+        "encoding": "RE",
+        "enabled_by_default": false
+      },
+      {
+        "panel": "b",
+        "x": 25,
+        "method": "GE-C/20",
+        "N": 1000000000,
+        "C": 1000,
+        "G": 50,
+        "range_length": 250,
+        "encoding": "GE",
+        "enabled_by_default": true
+      },
+      {
+        "panel": "b",
+        "x": 25,
+        "method": "GE-C/10",
+        "N": 1000000000,
+        "C": 1000,
+        "G": 100,
+        "range_length": 250,
+        "encoding": "GE",
+        "enabled_by_default": true
+      },
+      {
+        "panel": "b",
+        "x": 25,
+        "method": "EE",
+        "N": 1000000000,
+        "C": 1000,
+        "G": 0,
+        "range_length": 250,
+        "encoding": "EE",
+        "enabled_by_default": false
+      },
+      {
+        "panel": "b",
+        "x": 25,
+        "method": "RE",
+        "N": 1000000000,
+        "C": 1000,
+        "G": 0,
+        "range_length": 250,
+        "encoding": "RE",
+        "enabled_by_default": false
+      },
+      {
+        "panel": "b",
+        "x": 35,
+        "method": "GE-C/20",
+        "N": 1000000000,
+        "C": 1000,
+        "G": 50,
+        "range_length": 350,
+        "encoding": "GE",
+        "enabled_by_default": true
+      },
+      {
+        "panel": "b",
+        "x": 35,
+        "method": "GE-C/10",
+        "N": 1000000000,
+        "C": 1000,
+        "G": 100,
+        "range_length": 350,
+        "encoding": "GE",
+        "enabled_by_default": true
+      },
+      {
+        "panel": "b",
+        "x": 35,
+        "method": "EE",
+        "N": 1000000000,
+        "C": 1000,
+        "G": 0,
+        "range_length": 350,
+        "encoding": "EE",
+        "enabled_by_default": false
+      },
+      {
+        "panel": "b",
+        "x": 35,
+        "method": "RE",
+        "N": 1000000000,
+        "C": 1000,
+        "G": 0,
+        "range_length": 350,
+        "encoding": "RE",
+        "enabled_by_default": false
+      },
+      {
+        "panel": "b",
+        "x": 45,
+        "method": "GE-C/20",
+        "N": 1000000000,
+        "C": 1000,
+        "G": 50,
+        "range_length": 450,
+        "encoding": "GE",
+        "enabled_by_default": true
+      },
+      {
+        "panel": "b",
+        "x": 45,
+        "method": "GE-C/10",
+        "N": 1000000000,
+        "C": 1000,
+        "G": 100,
+        "range_length": 450,
+        "encoding": "GE",
+        "enabled_by_default": true
+      },
+      {
+        "panel": "b",
+        "x": 45,
+        "method": "EE",
+        "N": 1000000000,
+        "C": 1000,
+        "G": 0,
+        "range_length": 450,
+        "encoding": "EE",
+        "enabled_by_default": false
+      },
+      {
+        "panel": "b",
+        "x": 45,
+        "method": "RE",
+        "N": 1000000000,
+        "C": 1000,
+        "G": 0,
+        "range_length": 450,
+        "encoding": "RE",
+        "enabled_by_default": false
+      }
+    ]
+  }
+}
