@@ -43,7 +43,7 @@ Then, reproduce the key results by using the following command.
 
 This script automatically generates all necessary bitmaps, runs the complete evaluation pipeline, and produces the plots for Table 2 and Figures 8 and 9, which together constitute the key experimental results of the RABIT paper.
 
-To run additional experiments, please find the corresponding script in ./experiment_script.
+To run additional experiments, please find the corresponding script in ./experiment/experiment_script.
 
 Note that the datasets are large, and generating all of them may take hours. If you would like to skip this generation step, you can download a pre-generated copy from our repository at https://github.com/junchangwang/Bitmap-dataset (an optional speed-up resource). You can then skip the bitmap-generation procedure and run the experiments directly using the following command:
 
