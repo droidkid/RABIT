@@ -31,6 +31,7 @@ RABIT relies on c++17, python3, liburcu(-dev), and the Boost library.
 First, use the following command to compile the entire project. 
 
 ```sh
+python3 -m pip install -r experiment/requirements.txt
 ./build.sh 
 ```
 
