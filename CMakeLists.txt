@@ -16,12 +16,8 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(CMAKE_CXX_FLAGS "-g -ggdb -O3 -std=gnu++17 -fPIC -Wno-invalid-offsetof -Wno-deprecated-declarations")
     # set(CMAKE_CXX_FLAGS "-g -O3 -std=gnu++17 -fPIC")
 
-    include_directories("/usr/include/x86_64-linux-gnu")
-    include_directories("/usr/local/include")
     ADD_DEFINITIONS( "-DLINUX" )
-    set(BOOST_LIBRARYDIR /usr/lib/x86_64-linux-gnu)
-    set(BOOST_INCLUDEDIR /usr/include)
-    set(Boost_NO_SYSTEM_PATHS on)
+    # Honor CMAKE_PREFIX_PATH for user-local dependencies.
     find_package(Boost COMPONENTS filesystem program_options system REQUIRED)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
@@ -36,9 +32,15 @@ execute_process(
 add_definitions(-DCPU_GHZ=${CPU_GHZ})
 
 
-find_library(URCU_LIBRARIES 
-                NAMES urcu
-                HINTS "/usr/lib/x86_64-linux-gnu;/usr/local/lib")
+find_path(URCU_INCLUDE_DIR NAMES urcu.h)
+find_library(URCU_LIBRARIES NAMES urcu)
+if(NOT URCU_INCLUDE_DIR OR NOT URCU_LIBRARIES)
+    message(FATAL_ERROR "liburcu headers/library missing; set CMAKE_PREFIX_PATH to the dependency installation prefix")
+endif()
+add_library(URCU::URCU UNKNOWN IMPORTED)
+set_target_properties(URCU::URCU PROPERTIES
+    IMPORTED_LOCATION "${URCU_LIBRARIES}"
+    INTERFACE_INCLUDE_DIRECTORIES "${URCU_INCLUDE_DIR}")
 
 # fastbit
 set(FASTBIT_OBJ src/fastbit/bitvector_base.h
@@ -60,14 +62,14 @@ set(RABIT_OBJ src/bitmaps/rabit/segBtv.h src/bitmaps/rabit/segBtv.cpp
         src/bitmaps/rabit/table.h src/bitmaps/rabit/table.cpp)
 set(UTIL_OBJ src/nicolas/util.h src/nicolas/util.cpp)
 add_library(bitmap STATIC ${FASTBIT_OBJ} ${BASE_TABLE_OBJ} ${NAIVE_OBJ} ${UCB_OBJ} ${UB_OBJ} ${RABIT_OBJ} ${UTIL_OBJ})
-target_link_libraries(bitmap pthread atomic ${Boost_LIBRARIES} ${URCU_LIBRARIES})
+target_link_libraries(bitmap PUBLIC pthread atomic Boost::filesystem Boost::program_options Boost::system URCU::URCU)
 
 # main
 set(NICOLAS src/nicolas/nicolas.cpp)
 set(PERF_OBJ src/GTest/perf.h src/GTest/perf.cpp) 
 set(GTEST_OBJ src/nicolas/gen_bitmap.h src/nicolas/gen_bitmap.cpp)
 add_executable(nicolas ${NICOLAS} ${PERF_OBJ} ${GTEST_OBJ})
-target_link_libraries(nicolas bitmap pthread atomic ${Boost_LIBRARIES} ${URCU_LIBRARIES})
+target_link_libraries(nicolas bitmap)
 
 
 ################################

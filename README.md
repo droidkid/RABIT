@@ -50,3 +50,28 @@ Note that the datasets are large, and generating all of them may take hours. If 
 ```sh
 ./run_experiments_with_bitmaps.py bitmaps.zip
 ```
+
+## No-sudo SIGMOD builds
+
+Boost and liburcu may be installed under a user-owned prefix. Before building or launching the experiment runner, set:
+
+```bash
+export CMAKE_PREFIX_PATH="$HOME/.local/rabit-deps${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}"
+export LD_LIBRARY_PATH="$HOME/.local/rabit-deps/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+```
+
+Activate the Python environment before running experiments. Preserve these exports in batch jobs. Configure a fresh standalone build with `cmake -S . -B build-local -DCMAKE_BUILD_TYPE=Release`, then `cmake --build build-local -j2`. Check `ldd build-local/nicolas`: Boost and liburcu should resolve to the local installation without missing libraries.
+
+### Publishing experiment bases
+
+The runner still pins the original upstream commits until new build-fix commits exist. Create build-only commits based on RABIT `63fb6cd474ee6b8466a6fa6c96e4c92c532f91cc` and CUBIT `7eef13d8342bcec2cfb73f35c80281b663dfc040`. Transfer only the CMake portability changes onto those bases and publish named branches. Keep the current experiment delivery branch.
+
+In a subsequent delivery-branch commit, update SOURCE_BASES in experiment/run_experiments_all.py to https://github.com/droidkid/RABIT.git and https://github.com/droidkid/CUBIT.git, using the respective new full commit hashes. The RABIT source pin must reference the earlier build-fix commit, not the runner commit itself. Leave SOURCE_VARIANTS and the supplied experiment patches unchanged. Check each patch independently against its intended new base with `git apply --check`.
+
+### Validation
+
+Use fresh data/output directories after changing pins; do not edit managed .sources checkouts. Run `plan`, then `build` with identical options. Confirm all six roles build: rabit, re52, cubit, rabit51, re51, cubit51. Inspect their dependency resolution and build logs. Record original/replacement SHAs, build-only diffs, and compiler/CMake/dependency versions.
+
+Run small GE, RE and EE/CUBIT workloads, including modifications. Require successful exits, complete worker totals and positive throughput. Then run one full-size point with `all --sections 52 --nodes 52a-GE-C-20-X100`, using a separate validation output directory. Repeat that command to check completed-trial reuse. Finally run `all` using the full-suite build output and unchanged options.
+
+The default scope remains 60 configurations with a 48 GiB process budget; the 1 TB host does not automatically enable omitted Figure 9 points. Set --cpus and --prep-cpus to allowed CPU IDs consistently across stages. Check free disk space and the final report for skipped or failed configurations.
