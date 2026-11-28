@@ -10,7 +10,7 @@ From the RABIT repository root:
 ./run_experiments_all.py
 ```
 
-The script prepares the required source versions, applies their patches, builds the programs, generates inputs, runs three trials per point, and produces Table 2 and Figures 8 and 9. Source preparation reuses local Git objects where available; otherwise it downloads from the official RABIT/CUBIT repositories. No manual checkout or patch command is needed.
+The script prepares the required source versions, applies their patches, builds the programs, generates inputs, runs three trials per point, and produces Table 2 and Figures 8 and 9. Source preparation reuses local Git objects where available; otherwise it downloads the pinned revisions from the droidkid RABIT/CUBIT forks. These revisions support local Boost/liburcu installations via CMAKE_PREFIX_PATH; see the repository README for environment setup. No manual checkout or patch command is needed. Use fresh data/output directories when switching from the upstream pins.
 
 Inputs and prepared sources are stored under `~/rabit-inputs/`; new figures are in `~/rabit-fresh-results/figures/` (`figure8.png`, `figure9.png`, `table2.png` and individual panels). Use `--data-root` and `--output` to change them. Repeating the same command reuses verified inputs, prepared sources and completed trials. After changing scripts or source versions, use a new output directory.
 

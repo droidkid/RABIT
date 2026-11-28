@@ -64,9 +64,9 @@ Activate the Python environment before running experiments. Preserve these expor
 
 ### Publishing experiment bases
 
-The runner still pins the original upstream commits until new build-fix commits exist. Create build-only commits based on RABIT `63fb6cd474ee6b8466a6fa6c96e4c92c532f91cc` and CUBIT `7eef13d8342bcec2cfb73f35c80281b663dfc040`. Transfer only the CMake portability changes onto those bases and publish named branches. Keep the current experiment delivery branch.
+The runner pins the local-dependency fixes in the droidkid forks: RABIT `3a9b116d9d9f67936412019129485b4edb9b9c05` and CUBIT `572bb5d5bcfd835026088e113a48a48acfb702b5`. Relative to the original experiment bases (RABIT `63fb6cd474ee6b8466a6fa6c96e4c92c532f91cc` and CUBIT `7eef13d8342bcec2cfb73f35c80281b663dfc040`), benchmark C++ sources are unchanged; dependency discovery is updated in CMake.
 
-In a subsequent delivery-branch commit, update SOURCE_BASES in experiment/run_experiments_all.py to https://github.com/droidkid/RABIT.git and https://github.com/droidkid/CUBIT.git, using the respective new full commit hashes. The RABIT source pin must reference the earlier build-fix commit, not the runner commit itself. Leave SOURCE_VARIANTS and the supplied experiment patches unchanged. Check each patch independently against its intended new base with `git apply --check`.
+Ensure both pinned commits are pushed to reachable branches in https://github.com/droidkid/RABIT.git and https://github.com/droidkid/CUBIT.git before launching on another machine. The RABIT pin references the earlier dependency-fix commit, not the runner commit itself. SOURCE_VARIANTS and the experiment patches are unchanged; all five patches pass `git apply --check` against their new bases.
 
 ### Validation
 

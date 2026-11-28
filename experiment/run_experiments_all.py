@@ -29,8 +29,8 @@ from prepare_inputs import index_files, prepare_raw, sha256, write_json
 
 GIB = 1024**3
 SOURCE_BASES = {
-    'RABIT': ('https://github.com/junchangwang/RABIT.git', '63fb6cd474ee6b8466a6fa6c96e4c92c532f91cc'),
-    'CUBIT': ('https://github.com/junchangwang/CUBIT.git', '7eef13d8342bcec2cfb73f35c80281b663dfc040'),
+    'RABIT': ('https://github.com/droidkid/RABIT.git', '3a9b116d9d9f67936412019129485b4edb9b9c05'),
+    'CUBIT': ('https://github.com/droidkid/CUBIT.git', '572bb5d5bcfd835026088e113a48a48acfb702b5'),
 }
 SOURCE_VARIANTS = {
     'rabit': ('rabit_root', 'RABIT', 'section52-RABIT-GE.patch'),
